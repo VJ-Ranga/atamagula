@@ -6,17 +6,17 @@ A full-screen intro animation for websites. A frosted glass overlay covers an ey
 
 ## Preview
 
-**Pattern A — Spider Web** — click to watch
+**Pattern A — Spider Web**
 
-[![Pattern A — Spider Web](https://img.youtube.com/vi/SXiXI33TPZ4/hqdefault.jpg)](https://youtu.be/SXiXI33TPZ4)
+![Pattern A — Spider Web](preview-1.gif)
 
-**Pattern B — Mosaic Shatter** — click to watch
+**Pattern B — Mosaic Shatter**
 
-[![Pattern B — Mosaic Shatter](https://img.youtube.com/vi/fiMybmRJwZ8/hqdefault.jpg)](https://youtu.be/fiMybmRJwZ8)
+![Pattern B — Mosaic Shatter](preview-2.gif)
 
-**Pattern C — Panel Slide** — click to watch
+**Pattern C — Panel Slide**
 
-[![Pattern C — Panel Slide](https://img.youtube.com/vi/SFGUC4nA2Rc/hqdefault.jpg)](https://youtu.be/SFGUC4nA2Rc)
+![Pattern C — Panel Slide](preview-3.gif)
 
 Open `demo/index.html` in your browser to choose from 3 patterns:
 
