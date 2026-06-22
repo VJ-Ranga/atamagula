@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Glass Shatter — Mosaic Grid</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:100%; height:100%; overflow:hidden; background:#05080a; }
+  #wrap { position:fixed; inset:0; cursor:pointer; background:#05080a; overflow:hidden; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; }
+  #eye  { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transform:scale(1.06); transform-origin:50% 46%; will-change:transform,filter,opacity; }
+  #gc   { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+  #road { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0; transform:scale(1); will-change:opacity; pointer-events:none; }
+  #ov   { position:absolute; inset:0; background:#000; opacity:0; pointer-events:none; }
+  #prompt { position:absolute; left:0; right:0; bottom:42px; display:flex; justify-content:center; z-index:5; pointer-events:none; transition:opacity .4s; }
+  .pi { display:flex; align-items:center; gap:12px; padding:10px 20px; border:1px solid rgba(255,255,255,.22); border-radius:999px; background:rgba(10,14,18,.35); backdrop-filter:blur(6px); }
+  .pd { width:7px; height:7px; border-radius:50%; background:rgba(255,255,255,.85); box-shadow:0 0 12px rgba(255,255,255,.7); animation:scpulse 1.8s ease-in-out infinite; }
+  .pt { color:rgba(255,255,255,.82); font-size:12px; letter-spacing:.32em; text-transform:uppercase; }
+  #skip { position:absolute; top:20px; right:20px; z-index:10; color:rgba(255,255,255,.35); font-size:11px; letter-spacing:2px; text-transform:uppercase; border:1px solid rgba(255,255,255,.15); padding:6px 14px; border-radius:100px; cursor:pointer; user-select:none; transition:all .2s; background:transparent; }
+  #skip:hover { color:#fff; border-color:rgba(255,255,255,.5); }
+  @keyframes scpulse { 0%,100%{opacity:.35;transform:scale(.8)} 50%{opacity:1;transform:scale(1.25)} }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <img id="eye"  src="../1.png" alt="">
+  <canvas id="gc"></canvas>
+  <img id="road" src="../2.png" alt="">
+  <div id="ov"></div>
+  <div id="prompt"><div class="pi"><span class="pd"></span><span class="pt">Tap to shatter</span></div></div>
+  <button id="skip" onclick="skip()">Skip</button>
+</div>
+<script>
+// ╔══════════════════════════════════════════════════════╗
+// ║  STEP 1 — Paste your home page URL here             ║
+// ╚══════════════════════════════════════════════════════╝
+const HOME = 'YOUR_HOME_PAGE_URL';
+
+const GRAV=2200, BREAK_DUR=1.6;
+const wrap=document.getElementById('wrap'), eyeEl=document.getElementById('eye'),
+      gc=document.getElementById('gc'), ctx=gc.getContext('2d'),
+      roadEl=document.getElementById('road'), ovEl=document.getElementById('ov'),
+      promptEl=document.getElementById('prompt');
+let dpr,cssW,cssH,frosted,shards,center,maxDist,rafId;
+let phase='idle', t0=0, done=false;
+let pupilOrigin='50% 46%', pupilPctX=50, pupilPctY=46;
+
+const eyeImg=new Image();
+eyeImg.onload=init;
+eyeImg.src='../1.png';
+
+function coverRect(w,h,iw,ih){const s=Math.max(w/iw,h/ih);return{x:(w-iw*s)/2,y:(h-ih*s)/2,w:iw*s,h:ih*s};}
+
+function init(){
+  dpr=Math.min(window.devicePixelRatio||1,2);
+  cssW=wrap.clientWidth; cssH=wrap.clientHeight;
+  gc.width=Math.round(cssW*dpr); gc.height=Math.round(cssH*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  const r=coverRect(cssW,cssH,eyeImg.width,eyeImg.height);
+  frosted=buildFrosted(r);
+  generateShards(r.x+r.w*.655, r.y+r.h*.45);
+  pupilPctX = ((r.x + r.w*0.652) / cssW * 100);
+  pupilPctY = ((r.y + r.h*0.435) / cssH * 100);
+  pupilOrigin = pupilPctX.toFixed(1)+'% '+pupilPctY.toFixed(1)+'%';
+  resetLayers();
+  if(!rafId) rafId=requestAnimationFrame(loop);
+}
+
+function buildFrosted(r){
+  const fc=document.createElement('canvas');
+  fc.width=gc.width; fc.height=gc.height;
+  const fx=fc.getContext('2d');
+  fx.setTransform(dpr,0,0,dpr,0,0);
+  fx.filter='blur(6px) brightness(1.16) saturate(0.6) contrast(0.9)';
+  fx.drawImage(eyeImg,r.x,r.y,r.w,r.h);
+  fx.filter='none';
+  fx.fillStyle='rgba(205,222,236,.18)'; fx.fillRect(0,0,cssW,cssH);
+  fx.fillStyle='rgba(120,150,172,.10)'; fx.fillRect(0,0,cssW,cssH);
+  const g=fx.createLinearGradient(0,0,cssW,cssH);
+  g.addColorStop(0,'rgba(255,255,255,.06)'); g.addColorStop(.5,'rgba(255,255,255,0)'); g.addColorStop(1,'rgba(255,255,255,.04)');
+  fx.fillStyle=g; fx.fillRect(0,0,cssW,cssH);
+  return fc;
+}
+
+function resetLayers(){
+  eyeEl.style.transformOrigin=pupilOrigin;
+  eyeEl.style.transform='scale(1.06)';
+  eyeEl.style.filter='none';
+  eyeEl.style.opacity='1';
+  roadEl.style.opacity='0'; roadEl.style.transform='scale(1)';
+  ovEl.style.opacity='0'; ovEl.style.background='#000';
+}
+
+function makeShard(poly,cx,cy){
+  let mx=0,my=0; poly.forEach(p=>{mx+=p.x;my+=p.y;}); mx/=poly.length; my/=poly.length;
+  const dx=mx-cx,dy=my-cy,d=Math.hypot(dx,dy)||1;
+  const speed=280+Math.random()*350+(1-Math.min(d/500,1))*300;
+  const ang=Math.atan2(dy,dx)+(Math.random()-.5)*.6;
+  return{poly,cx:mx,cy:my,dist:d,vx:Math.cos(ang)*speed+(Math.random()-.5)*100,vy:Math.sin(ang)*speed-80-Math.random()*140,rot:(Math.random()-.5)*6.5,flyDur:.9+Math.random()*.6,detach:0};
+}
+
+// PATTERN B — Mosaic: triangulated irregular grid
+function generateShards(cx,cy){
+  const rows=7,cols=11;
+  const jx=cssW/cols*.55||50, jy=cssH/rows*.55||50;
+  const G=[];
+  for(let r=0;r<=rows;r++) for(let c=0;c<=cols;c++){
+    let x=(c/cols)*(cssW||800), y=(r/rows)*(cssH||600);
+    if(r>0&&r<rows&&c>0&&c<cols){x=Math.max(2,Math.min((cssW||800)-2,x+(Math.random()-.5)*jx));y=Math.max(2,Math.min((cssH||600)-2,y+(Math.random()-.5)*jy));}
+    G.push({x,y});
+  }
+  const W=cols+1,arr=[];
+  for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
+    const tl=G[r*W+c],tr=G[r*W+c+1],bl=G[(r+1)*W+c],br=G[(r+1)*W+c+1];
+    if((r+c)%2===0){arr.push(makeShard([tl,tr,br],cx,cy));arr.push(makeShard([tl,br,bl],cx,cy));}
+    else           {arr.push(makeShard([tl,tr,bl],cx,cy));arr.push(makeShard([tr,br,bl],cx,cy));}
+  }
+  center={x:cx,y:cy}; maxDist=1;
+  arr.forEach(s=>maxDist=Math.max(maxDist,s.dist));
+  arr.forEach(s=>{s.detach=.10+(s.dist/maxDist)*.55+Math.random()*.07;});
+  shards=arr;
+}
+
+const eIn=t=>t*t*t, cl=t=>Math.max(0,Math.min(1,t));
+
+function drawIdle(now){
+  if(!frosted) return;
+  ctx.drawImage(frosted,0,0,cssW,cssH);
+  const bx=-0.35*cssW+((now/3400)%1)*1.7*cssW;
+  const g=ctx.createLinearGradient(bx-240,0,bx+240,cssH);
+  g.addColorStop(0,'rgba(255,255,255,0)'); g.addColorStop(.5,'rgba(255,255,255,.09)'); g.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle=g; ctx.fillRect(0,0,cssW,cssH);
+  const vg=ctx.createRadialGradient(cssW/2,cssH/2,Math.min(cssW,cssH)*.35,cssW/2,cssH/2,Math.max(cssW,cssH)*.72);
+  vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(0,0,0,.42)');
+  ctx.fillStyle=vg; ctx.fillRect(0,0,cssW,cssH);
+}
+
+function poly2path(p){ctx.beginPath();ctx.moveTo(p[0].x,p[0].y);for(let i=1;i<p.length;i++)ctx.lineTo(p[i].x,p[i].y);ctx.closePath();}
+function fillShard(s){ctx.save();poly2path(s.poly);ctx.clip();ctx.drawImage(frosted,0,0,cssW,cssH);ctx.restore();}
+function strokeShard(s,a){poly2path(s.poly);ctx.lineWidth=1;ctx.strokeStyle='rgba(255,255,255,'+a+')';ctx.stroke();}
+
+function drawBreak(e){
+  const cf=(e/.26)*maxDist*1.25;
+  for(const s of shards){
+    const loc=e-s.detach;
+    if(loc<0){fillShard(s);strokeShard(s,.1+cl((cf-s.dist)/110)*.55);}
+    else{
+      const p=loc/s.flyDur; if(p>=1) continue;
+      const dx=s.vx*loc,dy=s.vy*loc+.5*GRAV*loc*loc;
+      ctx.save(); ctx.globalAlpha=1-p*p;
+      ctx.translate(s.cx+dx,s.cy+dy); ctx.rotate(s.rot*loc);
+      const sc=1+.22*p; ctx.scale(sc,sc); ctx.translate(-s.cx,-s.cy);
+      fillShard(s); strokeShard(s,.38*(1-p)); ctx.restore();
+    }
+  }
+  if(e<.18){
+    const a=1-e/.18,c=center;
+    const rg=ctx.createRadialGradient(c.x,c.y,0,c.x,c.y,260);
+    rg.addColorStop(0,'rgba(255,255,255,'+(0.7*a)+')'); rg.addColorStop(.4,'rgba(255,255,255,'+(0.22*a)+')'); rg.addColorStop(1,'rgba(255,255,255,0)');
+    ctx.fillStyle=rg; ctx.fillRect(0,0,cssW,cssH);
+  }
+}
+
+function applyAfterBreak(t){
+  const zoomT = cl(t / 1.8);
+  const scale = 1.06 + 4.44 * eIn(zoomT);
+  eyeEl.style.transform = 'scale(' + scale + ')';
+  const blur = Math.max(0, (scale - 2.0) * 2.2);
+  eyeEl.style.filter = blur > 0 ? 'blur('+blur.toFixed(1)+'px)' : 'none';
+  const darkT = cl((t - 1.2) / 0.9);
+  const roadT = cl((t - 2.3) / 1.9);
+  if(darkT > 0){
+    ovEl.style.opacity = '' + (1 - roadT).toFixed(3);
+    ovEl.style.background =
+      'radial-gradient(circle at '+pupilPctX.toFixed(1)+'% '+pupilPctY.toFixed(1)+'%, '+
+      'rgba(0,0,0,'+Math.min(darkT*1.4,1).toFixed(2)+') 0%, '+
+      'rgba(0,0,0,'+Math.min(darkT*0.85,1).toFixed(2)+') 35%, '+
+      'rgba(0,0,0,'+(darkT*0.4).toFixed(2)+') 70%, transparent 100%)';
+  } else { ovEl.style.opacity='0'; }
+  roadEl.style.opacity = '' + roadT;
+}
+
+function skip(){if(done)return;done=true;cancelAnimationFrame(rafId);fade();}
+function fade(){
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:#000;opacity:0;z-index:9999;transition:opacity .8s ease;pointer-events:none;';
+  document.body.appendChild(ov);
+  requestAnimationFrame(()=>ov.style.opacity='1');
+  setTimeout(()=>location.href=(HOME==='YOUR_HOME_PAGE_URL'?'/demo/home.html':HOME),850);
+}
+
+function loop(now){
+  ctx.clearRect(0,0,cssW,cssH);
+  if(phase==='idle'){
+    drawIdle(now);
+  } else if(phase==='breaking'){
+    const e=(now-t0)/1000;
+    drawBreak(e);
+    if(e>BREAK_DUR){ t0=now; phase='afterbreak'; }
+  } else if(phase==='afterbreak'){
+    const t=(now-t0)/1000;
+    applyAfterBreak(t);
+    if(t>7.2&&!done){ done=true; fade(); return; }
+  }
+  rafId=requestAnimationFrame(loop);
+}
+
+wrap.addEventListener('click',e=>{
+  if(e.target.id==='skip') return;
+  if(phase!=='idle') return;
+  promptEl.style.opacity='0';
+  const r=wrap.getBoundingClientRect();
+  generateShards(e.clientX-r.left, e.clientY-r.top);
+  t0=performance.now(); phase='breaking';
+});
+window.addEventListener('resize',()=>{if(phase==='idle') init();});
+</script>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home — Integration Guide</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background: #080808; color: #fff; min-height: 100vh; }
+        .hero { padding: 70px 0 50px; text-align: center; }
+        .hero .badge-top { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: #444; display: block; margin-bottom: 14px; }
+        .hero h1 { font-size: 2.2rem; font-weight: 700; }
+        .hero p { color: #555; font-size: 14px; margin-top: 8px; }
+        .section-title { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: #1A56DB; margin-bottom: 10px; }
+        .guide-card { background: #111; border: 1px solid #1e1e1e; border-radius: 20px; padding: 30px; margin-bottom: 24px; }
+        .guide-card h4 { font-size: 1.1rem; font-weight: 600; margin-bottom: 6px; }
+        .guide-card p { color: #666; font-size: 13px; line-height: 1.8; margin-bottom: 0; }
+        .step { display: flex; gap: 16px; margin-bottom: 18px; }
+        .step-num { flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%; background: #1A56DB; color: #fff; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; margin-top: 2px; }
+        .step-body { font-size: 13px; color: #888; line-height: 1.7; }
+        .step-body strong { color: #ccc; }
+        pre { background: #0d0d0d; border: 1px solid #1e1e1e; border-radius: 12px; padding: 20px; font-size: 12px; color: #a8c8a8; overflow-x: auto; margin: 14px 0 0; }
+        .badge-pill { background: #181818; border: 1px solid #252525; color: #666; font-size: 11px; padding: 4px 12px; border-radius: 100px; display: inline-block; margin-right: 6px; margin-bottom: 6px; }
+        .divider { border-color: #1a1a1a; margin: 10px 0 30px; }
+        .back-btn { display: inline-flex; align-items: center; gap: 8px; color: #444; font-size: 12px; text-decoration: none; border: 1px solid #1e1e1e; padding: 7px 16px; border-radius: 100px; transition: all .2s; }
+        .back-btn:hover { color: #fff; border-color: #333; }
+        .highlight { color: #5c9eff; }
+    </style>
+</head>
+<body>
+
+<div class="hero">
+    <div class="container">
+        <span class="badge-top">Animation Complete</span>
+        <h1>You're on the Home Page 🏠</h1>
+        <p>This is where the user lands after the intro. Below is how to wire it up in a real project.</p>
+        <a href="index.html" class="back-btn mt-3"><i class="fas fa-arrow-left"></i> Back to chooser</a>
+    </div>
+</div>
+
+<div class="container pb-5">
+
+    <!-- ── STEP 1: Set the URL ──────────────────────────── -->
+    <div class="section-title">Step 1</div>
+    <div class="guide-card">
+        <h4>Set Your Home Page URL</h4>
+        <p>Open whichever pattern file she chose (e.g. <span class="highlight">glass-a.html</span>) and find line 37 at the very top of the script:</p>
+        <pre>const HOME = 'YOUR_HOME_PAGE_URL';&nbsp; &nbsp;// ← change this</pre>
+        <p class="mt-3">Replace it with the real URL:</p>
+        <pre>const HOME = 'https://yourwebsite.com/';&nbsp; &nbsp;// ✅ done</pre>
+    </div>
+
+    <hr class="divider">
+
+    <!-- ── STEP 2: Add to PHP ──────────────────────────── -->
+    <div class="section-title">Step 2 — PHP Project</div>
+    <div class="guide-card">
+        <h4><i class="fab fa-php me-2" style="color:#777"></i>How to Add to a PHP / WordPress Site</h4>
+
+        <div class="step mt-4">
+            <div class="step-num">1</div>
+            <div class="step-body">
+                <strong>Copy the glass file into your project root.</strong><br>
+                Example: rename <code>glass-a.html</code> → <code>intro.php</code> and drop it in your theme or public root. HTML works fine as-is — no PHP needed in the file.
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-num">2</div>
+            <div class="step-body">
+                <strong>Copy the images too.</strong><br>
+                Put <code>1.png</code> (the eye) and <code>2.png</code> (the second image) next to the file, then update the two <code>src</code> paths at the top of the body:
+                <pre>&lt;img id="eye"  src="1.png" ...&gt;
+&lt;img id="road" src="2.png" ...&gt;</pre>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-num">3</div>
+            <div class="step-body">
+                <strong>Set that one-line URL and you're done.</strong><br>
+                <pre>const HOME = 'https://yourwebsite.com/';</pre>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-num">4</div>
+            <div class="step-body">
+                <strong>WordPress: make it the front page.</strong><br>
+                In <em>Settings → Reading</em>, set "Your homepage displays" to a <strong>Static Page</strong>, create a page called "Intro", and use a full-width page template. Paste the glass HTML into the page body via the HTML block, or just host the file separately and redirect to it.
+            </div>
+        </div>
+    </div>
+
+    <hr class="divider">
+
+    <!-- ── STEP 3: Show Once ──────────────────────────── -->
+    <div class="section-title">Step 3 — Show Only Once Per User</div>
+    <div class="guide-card">
+        <h4><i class="fas fa-cookie-bite me-2" style="color:#777"></i>One Time Per Session</h4>
+        <p>Add these two snippets to the glass file. First, paste this <strong>right after</strong> <code>const HOME = '...';</code> :</p>
+        <pre>// Skip intro if already seen this session
+if(sessionStorage.getItem('intro_seen')){
+  location.replace(HOME);
+}</pre>
+        <p class="mt-3">Second, inside the <code>fade()</code> function, add one line <strong>before</strong> <code>document.body.appendChild(ov);</code> :</p>
+        <pre>function fade(){
+  sessionStorage.setItem('intro_seen','1'); // ← add this line
+  const ov=document.createElement('div');
+  ...</pre>
+        <p class="mt-3">Now the intro plays once. If the user opens a new tab or comes back in the same browser session, it skips straight to the home page.</p>
+    </div>
+
+    <div class="guide-card">
+        <h4><i class="fas fa-infinity me-2" style="color:#777"></i>One Time Ever (Persists Across Sessions)</h4>
+        <p>Same as above but use <code>localStorage</code> instead of <code>sessionStorage</code>:</p>
+        <pre>if(localStorage.getItem('intro_seen')){ location.replace(HOME); }
+
+// inside fade():
+localStorage.setItem('intro_seen','1');</pre>
+        <p class="mt-3">This remembers even after the browser is closed. The intro never plays again for that user on that device.</p>
+        <p class="mt-2"><span class="badge-pill"><i class="fas fa-lightbulb me-1"></i>Tip</span> To reset during testing, open DevTools → Application → Local Storage → delete the <code>intro_seen</code> key.</p>
+    </div>
+
+    <hr class="divider">
+
+    <!-- ── Full snippet ──────────────────────────── -->
+    <div class="section-title">Ready-to-paste snippet</div>
+    <div class="guide-card">
+        <h4>Both Together — Copy &amp; Paste</h4>
+        <p>Drop this at the top of the <code>&lt;script&gt;</code> block, replacing the existing HOME line:</p>
+        <pre>const HOME = 'https://yourwebsite.com/';   // ← your URL here
+
+// Show intro only once per session (change to localStorage for permanent)
+if(sessionStorage.getItem('intro_seen')){ location.replace(HOME); }</pre>
+        <p class="mt-3">And add one line at the top of <code>fade()</code>:</p>
+        <pre>function fade(){
+  sessionStorage.setItem('intro_seen','1');
+  /* rest of fade() stays the same ... */</pre>
+    </div>
+
+</div>
+
+</body>
+</html>
