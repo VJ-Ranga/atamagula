@@ -13,7 +13,7 @@
   #wrap { position:fixed; inset:0; cursor:pointer; background:#05080a; overflow:hidden; font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; }
   #eye  { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transform:scale(1.06); transform-origin:50% 46%; will-change:transform,filter,opacity; }
   #gc   { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
-  #road { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0; transform:scale(1); will-change:opacity; pointer-events:none; }
+  #road { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0; will-change:opacity; pointer-events:none; }
   #ov   { position:absolute; inset:0; background:#000; opacity:0; pointer-events:none; }
   #prompt { position:absolute; left:0; right:0; bottom:42px; display:flex; justify-content:center; z-index:5; pointer-events:none; transition:opacity .4s; }
   .pi { display:flex; align-items:center; gap:12px; padding:10px 20px; border:1px solid rgba(255,255,255,.22); border-radius:999px; background:rgba(10,14,18,.35); backdrop-filter:blur(6px); }
@@ -91,7 +91,7 @@ function resetLayers(){
   eyeEl.style.transform='scale(1.06)';
   eyeEl.style.filter='none';
   eyeEl.style.opacity='1';
-  roadEl.style.opacity='0'; roadEl.style.transform='scale(1)';
+  roadEl.style.opacity='0';
   ovEl.style.opacity='0'; ovEl.style.background='#000';
 }
 
@@ -165,17 +165,13 @@ function drawBreak(e){
 }
 
 function applyAfterBreak(t){
-  // Zoom straight into the pupil — origin already set to pupil center
-  // 0.3-2.1s: scale 1.06 → 5.5  (deep dive into the iris)
   const zoomT = cl(t / 1.8);
   const scale = 1.06 + 4.44 * eIn(zoomT);
   eyeEl.style.transform = 'scale(' + scale + ')';
-
-  // Add blur once zoomed past scale 2 — feels like entering through the lens
   const blur = Math.max(0, (scale - 2.0) * 2.2);
   eyeEl.style.filter = blur > 0 ? 'blur('+blur.toFixed(1)+'px)' : 'none';
 
-  // 1.2-2.1s: radial dark expanding from pupil center
+  // Darken from pupil center as we zoom in
   const darkT = cl((t - 1.2) / 0.9);
   const roadT = cl((t - 2.3) / 1.9);
   if(darkT > 0){
@@ -185,11 +181,9 @@ function applyAfterBreak(t){
       'rgba(0,0,0,'+Math.min(darkT*1.4,1).toFixed(2)+') 0%, '+
       'rgba(0,0,0,'+Math.min(darkT*0.85,1).toFixed(2)+') 35%, '+
       'rgba(0,0,0,'+(darkT*0.4).toFixed(2)+') 70%, transparent 100%)';
-  } else {
-    ovEl.style.opacity='0';
-  }
+  } else { ovEl.style.opacity='0'; }
 
-  // 2.3-4.2s: image 2 rises — overlay fades out at same rate
+  // Image 2 slowly rises from the dark — overlay fades out at same rate
   roadEl.style.opacity = '' + roadT;
 }
 
